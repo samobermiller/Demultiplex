@@ -23,11 +23,16 @@ read2
 
 ## Part 2
 1. Define the problem
+```
     We need to seperate samples that have been run simultaneously based on their barcodes. These reads should have a matched pair (the other end of the strand) but sometimes these barcodes are unmatched or unknown, so they need to be seperated out. 
+```
 2. Describe output
+```
 We need the reads to be seperated into files based on their information. 48 files should have a read that is part of a matched pair (24 known barcodes, each barcode has two reads), one file that has hopped barcodes from read 1, one file that has hopped barcodes from read 2, one file that has unknown barcodes from read 1, one file that has unknown barcodes from read 2. 
+```
 3. Upload your [4 input FASTQ files](../TEST-input_FASTQ) and your [>=6 expected output FASTQ files](../TEST-output_FASTQ).
 4. Pseudocode
+```
 create a set of known indexes from the R1 file
 with all 4 files open
     for the nth record, create temporary arrays ([header, seq, +, qualityscore]) for each of the 4 files (result=four arrays with header in position 1, seq in position 2, + in position 3, qualscore position 4)
@@ -49,10 +54,13 @@ with all 4 files open
                             if not:write to unmatched file for that read, add reverse compliment to header
                                 unmatched_counter+=1
     create dictionary with index1 as key and number of occurences in matched file as value
+```
 5. High level functions
+```
 def reverse_compliment(letter: str) -> float:
 "create reverse compliment of a given sequence"
 return reverse_compliment
 #reverse compliment check
 assert reverse_compliment ("ATGC") == GCAT
 assert reverse_compliment ("TACG") == CGTA
+```
