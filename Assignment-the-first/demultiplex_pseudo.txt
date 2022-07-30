@@ -1,0 +1,20 @@
+create a set of known indexes from the R1 file
+with all 4 files open
+    for the nth record, create temporary arrays ([header, seq, +, qualityscore]) for each of the 4 files (result=four arrays with header in position 1, seq in position 2, + in position 3, qualscore position 4)
+        is there an "n" present in index1 or index2 of the nth record?
+            if yes: send record from original read file to unknown file designated for that read (1 or 2), create reverse compliment variable and add to header
+                unknown_counter+=1
+            if no:for qscore line of nth record, are any of the phred values in qscore line < 30?
+                if yes: send record from original read file to unknown file designated for that read (1 or 2), create reverse compliment variable and add to header
+                    unknown_counter+=1
+                if no: is index 1 in set of known indexes?
+                    if not: write record from original read file to unknown file designated for that read, create reverse_compliment variable and add to header
+                        unknown_counter+=1
+                    if yes: create reverse complement of index2, is that reverse complement in the set?
+                        if not: write to unmatched file for that read, add reverse compliment variable to header
+                            unmatched_counter+=1
+                        if yes: is reverse compliment of index2 equal to that read's index1?
+                            if yes:write to matched file for that read, add reverse compliment to header
+                                matched_counter+=1
+                            if not:write to unmatched file for that read, add reverse compliment to header
+                                unmatched_counter+=1

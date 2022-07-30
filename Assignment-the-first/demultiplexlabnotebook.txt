@@ -1,0 +1,93 @@
+7/26/22
+
+talapas /projects/bgmp/shared/2017_sequencing
+zcat 1294_S1_L008_R4_001.fastq.gz | wc -l
+    defines number of lines (divide by 4 for number of reads)
+zcat 1294_S1_L008_R13_001.fastq.gz | head
+zcat 1294_S1_L008_R1_001.fastq.gz | head -2 | tail -1 | wc
+    number of bases not actually 102, 101 due to new line character
+R1 and R2 pairs: they are opposite ends of the same strand
+File formatting notes:
+file1 - bio R1
+file2 - index I1
+file3 -index I2
+file4 -bio R2
+first read in all 4 files are from the same cluster
+
+seperate out files by matching barcode and labeling barcode_R1.fq, barcode_R2.fq etc
+should have 48 dual matched read files (example AAA-AAA-R1.fq, AAA-AAA-R2.fq)
+2 hopped files, hoppedR1, hopped R2 (example AAA-GGG)
+2 unkown files, unkR1.fq, unkR2.fq (example ATG-GCC)
+52 total files
+
+had difficulty running script from PS9 due to memory issues, adjusted so entire list wasn't saved
+
+./demultiplex.py -f ../../../shared/2017_sequencing/1294_S1_L008_R1_001.fastq.gz -l 101 -o read1
+./demultiplex.py -f ../../../shared/2017_sequencing/1294_S1_L008_R2_001.fastq.gz -l 8 -o index1
+
+7/27/22
+Psuedocode notes
+Define:
+    match:
+    I1=revcomp of I2
+    nonmatch:
+    I1!=revcomp of I 2
+    unknown:
+    I1 or I2 contain "N"
+Strategy:
+create a set of known indexes
+with all 4 files
+    for the nth record in all 4 fastq files
+        create empty record_array example read1: [header, seq, +, qualityscore]
+        is qscore < cutoff?
+            if yes: send read to unknown file, set reverse_compliment variable and add to header
+            if not:is index 1 in set?
+                if not: write to unknown file, set reverse_compliment variable and add to header
+                if yes: is reverse compliment of index2 in set? set reverse_compliment variable
+                    if not: write to unknown file,   add reverse_compliment variable to header
+                    if yes: is reverse compliment of index2 equal to that read's index1?
+                        if yes:write to matched file, add reverse compliment to header
+                        if not:write to unmatched file, add reverse compliment to header
+
+
+
+each time we are adding the header: 
+    write file
+        ***when writing out each of these to their respective files, add to the exisiting header of each read:
+            @header_index1_index2(reverse compliment)
+        
+
+do we toss sequence if there is a single bad score among a bunch of high scores?
+since we are only looking at index, toss if any base in index has quality score less than 30 
+functions: reverse compliment
+
+7/28/22
+Pseudocode
+create a set of known indexes
+with all 4 files open
+    find the nth record in all 4 fastq files (these will be from the same sequence)
+        create an empty record array ([header, seq, +, qualityscore])
+        for qscore line, is qscore < cutoff?
+            if yes: send read to unknown file for that read (1 or 2), create reverse compliment variable and add to header
+            unknown_counter+=1
+        for sequence line, is index 1 in set?
+            if not: write to unknown file for that read, create reverse_compliment variable and add to header
+            unknown_counter+=1
+            if yes: create reverse complement of index2, is that reverse complement in the set?
+                if not: write to unmatched file for that read, add reverse compliment variable to header
+                unmatched_counter+=1
+                if yes: is reverse compliment of index2 equal to that read's index1?
+                    if yes:write to matched file for that read, add reverse compliment to header
+                    matched_counter+=1
+                    if not:write to unmatched file for that read, add reverse compliment to header
+                    unmatched_counter+=1
+
+Output:
+unknown_read1
+unknown_read2
+unmatched_read1
+unmatched_read2
++ 24 files that are barcode_matchedR1
++ 24 files that are barcode_matchedR2
+
+Add barcode counter via dictionary and start filter with n instead
