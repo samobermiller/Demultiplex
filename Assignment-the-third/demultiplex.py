@@ -26,6 +26,7 @@ with open(args.known_indexes, "r") as fh:
 # for index1, index2 in index_perm:
 #     key = index1+'_'+index2
 #     index_hopped_dict[key]=0
+#old method for dict that uses permutations, won't include matches which we need so used itertools product instead
 index_prod= itertools.product(known_indexes, repeat=2)
 for index1, index2 in index_prod:
     key = index1+'_'+index2
@@ -59,10 +60,12 @@ while True:
     i2_record=[index2fh.readline().strip(), index2fh.readline().strip(), index2fh.readline().strip(), index2fh.readline().strip()]
     if(r1_record[0] == ""):
         break
+    #stop after final record
     index1=i1_record[1]
     R1_header=r1_record[0]
     R2_header=r2_record[0]
     index2=i2_record[1]
+    #frequently called positions
     if "N" in index1 or "N" in index2:
         index2_rev=bioinfo.reverse_complement(index2)
         #print("trigger n")
@@ -119,6 +122,7 @@ while True:
                         unmatched_R2.write(R2_header+'\n'+r2_record[1]+'\n'+r2_record[2]+'\n'+r2_record[3]+'\n')
                         hopped_counter+=1
                         index_matched_dict[index1+'_'+index2_rev]+=1
+                        #increment dictionary, this variable name says matched but includes both hopped and matched
                     else:
                         #print("matched:", index1)
                         R1_header=R1_header+'_'+index1+'_'+index2_rev
@@ -126,7 +130,8 @@ while True:
                         R1_matched[index1].write(R1_header+'\n'+r1_record[1]+'\n'+r1_record[2]+'\n'+r1_record[3])
                         R2_matched[index2_rev].write(R2_header+'\n'+r2_record[1]+'\n'+r2_record[2]+'\n'+r2_record[3])
                         matched_counter+=1 
-                        index_matched_dict[index1+'_'+index2_rev]+=1       
+                        index_matched_dict[index1+'_'+index2_rev]+=1 
+                        #increment dictionary, this variable name says matched but includes both hopped and matched      
 outputstats.write("unknown"+"\t"+ "hopped"+"\t"+ "matched"+"\t"+"low_qual"+"\n")
 outputstats.write(str(unknown_counter)+'\t'+str(hopped_counter)+'\t'+str(matched_counter)+'\t'+str(lowquality)+'\n')
 # print(unknown_counter)
@@ -141,9 +146,11 @@ outputstats.write('Indexes'+"\n")
 for key, value in index_matched_dict.items():
     print(key, value, str(round(value/(matched_counter+hopped_counter+unknown_counter)*100,2))+"%",sep="\t")
     outputstats.write(str(key)+'\t'+str(value)+"\t"+str(round(value/(matched_counter+hopped_counter+unknown_counter)*100,2))+"%"+'\n')
+    #include percentages for hopped, unknown, matched
 for index in known_indexes:
         unknown_R1.close()
         unknown_R2.close()
+    #must close these in loop
 read1fh.close()
 index1fh.close()
 index2fh.close()
